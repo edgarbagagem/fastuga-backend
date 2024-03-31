@@ -12,6 +12,8 @@ services:
       - ./application/:/var/www/html/
       - ./logs/nginx:/var/log/nginx/
     container_name: nginx
+    depends_on:
+      - php
   php:
     build:
       context: .
@@ -21,9 +23,11 @@ services:
     volumes:
     - ./application/:/var/www/html/
     - ./logs/php.log:/var/log/fpm-php.www.log
+    - ./application/.env:/var/www/html/.env
     container_name: php
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     expose:
     - "9000"
     command: >
@@ -37,14 +41,20 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_USER: edgar
-      MYSQL_PASSWORD: xpto
-      MYSQL_DATABASE: laravel
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
     volumes:
       - ./db-data:/var/lib/mysql
     networks:
-      - internal
+    - internal
+    healthcheck:
+      test: ["CMD-SHELL", "mysql --user=${DB_USERNAME} --password=${DB_PASSWORD} -e \"SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '${DB_DATABASE}'\" | grep ${DB_DATABASE}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
 networks:
   internal:

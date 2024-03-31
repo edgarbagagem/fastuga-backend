@@ -2,7 +2,7 @@
 
 To build and run just run this command in the terminal at the root of the project 
 ```
-docker compose up --build
+docker compose --env-file ./application/.env up --build
 ```
 This deploys 3 containers:
 ```

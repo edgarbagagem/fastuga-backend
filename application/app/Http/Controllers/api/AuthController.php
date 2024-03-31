@@ -5,19 +5,19 @@ namespace App\Http\Controllers\api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-const PASSPORT_SERVER_URL = "http://localhost";
-const CLIENT_ID = 2;
-const CLIENT_SECRET = '2KebdCFUy9uocGJjwGaIGuHJEVc7VzsBmfZUGxEv';
+use Laravel\Passport\Client as OauthClient;
 
 class AuthController extends Controller
 {
     private function passportAuthenticationData($username, $password)
     {
+
+        $client = OauthClient::where('password_client', 1)->firstOrFail();
+
         return [
             'grant_type' => 'password',
-            'client_id' => CLIENT_ID,
-            'client_secret' => CLIENT_SECRET,
+            'client_id' => $client->id,
+            'client_secret' => $client->secret,
             'username' => $username,
             'password' => $password,
             'scope' => ''
@@ -30,7 +30,7 @@ class AuthController extends Controller
                 $request->username,
                 $request->password
             ));
-            $request = Request::create(PASSPORT_SERVER_URL . '/oauth/token', 'POST');
+            $request = Request::create(env('APP_URL') . '/oauth/token', 'POST');
             $response = Route::dispatch($request);
             $errorCode = $response->getStatusCode();
             $auth_server_response = json_decode((string) $response->content(), true);
