@@ -23,7 +23,6 @@ services:
     volumes:
     - ./application/:/var/www/html/
     - ./logs/php.log:/var/log/fpm-php.www.log
-    - ./application/.env:/var/www/html/.env
     container_name: php
     depends_on:
       mysql:
